@@ -1,5 +1,5 @@
 import java.util.*;
-
+// this programm show the ddemo of java vectors
 class Student{
 
 int rno;
