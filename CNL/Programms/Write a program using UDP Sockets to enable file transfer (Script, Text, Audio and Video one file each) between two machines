@@ -1,0 +1,93 @@
+~~~~~Server Class~~~~~[udpservfile.c]
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<stdio.h>
+#include<netinet/in.h> 
+#include <unistd.h>
+#include<string.h> 
+#include <arpa/inet.h>
+void main()
+{
+int b,udpsockfd,nBytes;
+char buffer[10000];
+char c[10000];
+if((udpsockfd=socket(AF_INET,SOCK_DGRAM,0))>=0)  //socket creation
+printf("Socket created Successfully \n");                 //on success 0 otherwise -1
+struct sockaddr_in servaddr,clientaddr;              
+
+//Assign server object parameters
+servaddr.sin_family=AF_INET;
+servaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
+servaddr.sin_port=6000;
+//bind() assigns the
+     //  address  specified  by  addr  to  the  socket  referred  to by the file
+      // descriptor sockfd.  addrlen  specifies  the  size,  in  bytes,  of  the
+     //  address structure pointed to by addr.  Traditionally, this operation is
+      // called â€œassigning a name to a socketâ€.
+if((b=bind(udpsockfd, (struct sockaddr *)&servaddr,sizeof(servaddr)))==0)   
+printf("Bind Sucessful \n");
+
+int sin_size=sizeof(clientaddr);
+recvfrom(udpsockfd,buffer,10000,0,(struct sockaddr *)&clientaddr, &sin_size);   
+
+FILE *fp;
+fp= fopen("/home/Tushar/CNL/GroupA/A-3_UDPFile/Server/receive.txt", "w+");
+
+/* Read and display data */
+fwrite(buffer,  1,strlen(buffer) + 1, fp);
+
+printf("Received File Contents :%s \n", buffer);
+fclose(fp);
+close(udpsockfd);
+}
+~~~~~Client Class~~~~~[udpclifile.c]
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<stdio.h>
+#include<netinet/in.h> 
+#include <unistd.h>
+#include<string.h> 
+#include<strings.h>
+#include <arpa/inet.h>
+#include <stdlib.h>
+
+void main()
+{
+int udpsockfd;
+
+struct sockaddr_in servaddr,clientaddr;
+
+// Socket call for socket creation: socket on sucess returns smallest integer value (3) otherwise -1
+if((udpsockfd=socket(AF_INET,SOCK_DGRAM,0))>=0)
+printf("Socket Created Sucessfully \n");
+
+//Initialize object parameters of server: family,ip,port
+servaddr.sin_family=AF_INET;
+servaddr.sin_addr.s_addr=inet_addr("127.0.0.1");
+servaddr.sin_port=6000;
+
+//initiate a connection on a socket from client to server using connect call
+// connect call on sucess return 0 otnerwise -1
+
+char buffer[100];
+char c[10000] = "This is file contents for the transfer program using UDP";
+//char source[MAXBUFLEN + 1];
+//bzero(buffer,10000);
+FILE *fp; 
+fp= fopen("/home/Tushar/CNL/GroupA/A-3_UDPFile/Client/send.txt", "w+");
+   /* Write data to the file */
+   fwrite(c, 1, strlen(c) + 1, fp);
+   /* Seek to the beginning of the file */
+   fseek(fp, 0, SEEK_SET);
+   /* Read and display data */
+   fread(buffer, 1,strlen(c)+1, fp);
+  int len=strlen(buffer);
+  // fclose(fp);
+sendto(udpsockfd,buffer,len,0,(struct sockaddr *)&servaddr,sizeof(servaddr));
+//write(connfd, buffer, strlen(buffer));
+printf("Sent File Contents: %s\n", buffer);
+fclose(fp);
+
+close(udpsockfd);
+}
+
